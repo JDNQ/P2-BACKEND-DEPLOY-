@@ -15,6 +15,7 @@ async function bootstrap() {
       if (
         !origin ||
         origin.endsWith(".vercel.app") ||
+        origin.endsWith(".onrender.com") ||
         origin === "http://localhost:3000"
       ) {
         callback(null, true);
