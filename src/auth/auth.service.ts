@@ -72,13 +72,9 @@ export class AuthService {
       this.loginAttempts.set(dto.username, next);
 
       if (next >= 3) {
-        if (dto.captchaToken !== "valid") {
-          return {
-            requireCaptcha: true,
-            message: "Vui lòng xác minh captcha",
-          };
-        }
-        this.loginAttempts.set(dto.username, 0);
+        throw new UnauthorizedException(
+          "Quá nhiều lần đăng nhập thất bại. Vui lòng thử lại sau.",
+        );
       }
 
       throw new UnauthorizedException("Sai username hoặc password");
@@ -91,13 +87,9 @@ export class AuthService {
       this.loginAttempts.set(dto.username, next);
 
       if (next >= 3) {
-        if (dto.captchaToken !== "valid") {
-          return {
-            requireCaptcha: true,
-            message: "Vui lòng xác minh captcha",
-          };
-        }
-        this.loginAttempts.set(dto.username, 0);
+        throw new UnauthorizedException(
+          "Quá nhiều lần đăng nhập thất bại. Vui lòng thử lại sau.",
+        );
       }
 
       throw new UnauthorizedException("Sai username hoặc password");
