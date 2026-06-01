@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
   IsArray,
   IsNumber,
@@ -7,8 +7,8 @@ import {
   MaxLength,
   Min,
   ValidateNested,
-} from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+} from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateVariantDto {
   @ApiProperty()
