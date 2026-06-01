@@ -29,7 +29,13 @@ export class AuthService {
     });
   }
 
+  private readonly loginAttempts = new Map<string, number>();
+
   async register(dto: RegisterDto) {
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException("Mật khẩu nhập lại không khớp");
+    }
+
     const exists = await (this.prisma as any).user.findFirst({
       where: {
         OR: [
@@ -50,6 +56,7 @@ export class AuthService {
         password,
         role: Role.USER,
       },
+
       select: { id: true, username: true, email: true, role: true },
     });
   }
@@ -59,10 +66,45 @@ export class AuthService {
       where: { username: dto.username },
     });
 
-    if (!user) throw new UnauthorizedException("Sai username hoặc password");
+    if (!user) {
+      const current = this.loginAttempts.get(dto.username) ?? 0;
+      const next = current + 1;
+      this.loginAttempts.set(dto.username, next);
+
+      if (next >= 3) {
+        if (dto.captchaToken !== "valid") {
+          return {
+            requireCaptcha: true,
+            message: "Vui lòng xác minh captcha",
+          };
+        }
+        this.loginAttempts.set(dto.username, 0);
+      }
+
+      throw new UnauthorizedException("Sai username hoặc password");
+    }
 
     const ok = await bcrypt.compare(dto.password, user.password);
-    if (!ok) throw new UnauthorizedException("Sai username hoặc password");
+    if (!ok) {
+      const current = this.loginAttempts.get(dto.username) ?? 0;
+      const next = current + 1;
+      this.loginAttempts.set(dto.username, next);
+
+      if (next >= 3) {
+        if (dto.captchaToken !== "valid") {
+          return {
+            requireCaptcha: true,
+            message: "Vui lòng xác minh captcha",
+          };
+        }
+        this.loginAttempts.set(dto.username, 0);
+      }
+
+      throw new UnauthorizedException("Sai username hoặc password");
+    }
+
+    // Success -> reset counter
+    this.loginAttempts.set(dto.username, 0);
 
     const expiresIn = this.configService.get<string>("JWT_EXPIRES_IN") ?? "1d";
 
@@ -83,6 +125,10 @@ export class AuthService {
   }
 
   async createManager(dto: RegisterDto) {
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException("Mật khẩu nhập lại không khớp");
+    }
+
     const exists = await (this.prisma as any).user.findFirst({
       where: {
         OR: [
@@ -103,6 +149,7 @@ export class AuthService {
         password,
         role: Role.MANAGER,
       },
+
       select: { id: true, username: true, email: true, role: true },
     });
   }
