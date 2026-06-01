@@ -7,11 +7,41 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Role {
+  ADMIN
+  MANAGER
+  USER
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  email     String   @unique @db.VarChar(100)
+  password  String
+  role      Role     @default(USER)
+  shops     Shop[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Shop {
+  id          Int       @id @default(autoincrement())
+  shopName    String    @db.VarChar(100)
+  description String?   @db.Text
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     Int
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
 model Product {
   id          Int       @id @default(autoincrement())
   productName String    @db.VarChar(100)
   description String?   @db.Text
   basePrice   Float
+  shop        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  shopId      Int
   variants    Variant[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -25,3 +55,4 @@ model Variant {
   product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId   Int
 }
+
