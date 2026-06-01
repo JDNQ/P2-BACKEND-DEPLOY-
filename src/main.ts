@@ -24,7 +24,7 @@ async function bootstrap() {
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   });
 
   app.useGlobalPipes(
