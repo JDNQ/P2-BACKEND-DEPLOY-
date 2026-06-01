@@ -1,32 +1,18 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from "class-validator";
-import { Role } from "../role.enum";
+import { IsEmail, IsOptional, IsString, MinLength } from "class-validator";
 
 export class RegisterDto {
-  @ApiProperty({ minLength: 3, maxLength: 50 })
-  @IsString()
-  @MinLength(3)
-  @MaxLength(50)
+  @ApiProperty({ required: true, example: "john" })
+  @IsString({ message: "Username là bắt buộc" })
   username: string;
 
-  @ApiProperty()
-  @IsEmail()
-  email: string;
+  @ApiProperty({ required: false, example: "john@gmail.com" })
+  @IsOptional()
+  @IsEmail({}, { message: "Email không hợp lệ" })
+  email?: string;
 
   @ApiProperty({ minLength: 6 })
-  @IsString()
-  @MinLength(6)
+  @IsString({ message: "Password là bắt buộc" })
+  @MinLength(6, { message: "Password phải từ 6 ký tự trở lên" })
   password: string;
-
-  @ApiProperty({ required: false, enum: Role })
-  @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
 }
