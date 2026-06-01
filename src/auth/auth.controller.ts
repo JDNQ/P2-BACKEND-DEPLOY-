@@ -3,7 +3,7 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
-import { Role } from "@prisma/client";
+import { Role } from "./role.enum";
 
 @ApiTags("auth")
 @Controller("auth")
