@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
 import {
   IsArray,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -26,6 +27,25 @@ export class CreateVariantDto {
   @IsNumber()
   @Min(0)
   stock: number;
+
+  @ApiProperty({
+    required: false,
+    description: "URL ảnh variant (upload trước rồi điền url)",
+  })
+  @IsOptional()
+  @IsString()
+  image?: string;
+}
+
+export class ProductImageDto {
+  @ApiProperty()
+  @IsString()
+  url: string;
+
+  @ApiProperty({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  isPrimary?: boolean;
 }
 
 export class CreateProductDto {
@@ -50,4 +70,15 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => CreateVariantDto)
   variants: CreateVariantDto[];
+
+  @ApiProperty({
+    type: [ProductImageDto],
+    required: false,
+    description: "List URL ảnh product (upload trước rồi điền url)",
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductImageDto)
+  images?: ProductImageDto[];
 }

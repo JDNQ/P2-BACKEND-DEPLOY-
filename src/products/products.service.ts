@@ -14,7 +14,7 @@ export class ProductsService {
 
   findAll() {
     return this.prisma.product.findMany({
-      include: { variants: true },
+      include: { variants: true, images: true },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -22,7 +22,7 @@ export class ProductsService {
   async findOne(id: number) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { variants: true },
+      include: { variants: true, images: true },
     });
 
     if (!product) {
@@ -33,7 +33,7 @@ export class ProductsService {
   }
 
   create(dto: CreateProductDto) {
-    const { variants, ...productData } = dto;
+    const { variants, images, ...productData } = dto;
 
     return this.prisma.product.create({
       data: {
@@ -41,10 +41,11 @@ export class ProductsService {
         // TODO: connect to Shop via shopId when MANAGER/ADMIN endpoints are implemented.
         shop: { connect: { id: (productData as any).shopId } },
         variants: {
-          create: variants,
+          create: variants.map(({ image, ...v }) => ({ ...v, image })),
         },
+        ...(images && images.length > 0 ? { images: { create: images } } : {}),
       },
-      include: { variants: true },
+      include: { variants: true, images: true },
     });
   }
 
@@ -62,7 +63,7 @@ export class ProductsService {
       throw new NotFoundException(`Product #${id} not found`);
     }
 
-    const { variants, ...productData } = dto;
+    const { variants, images, ...productData } = dto;
 
     try {
       return await this.prisma.$transaction(async (transaction) => {
@@ -74,9 +75,26 @@ export class ProductsService {
           where: { id },
           data: {
             ...productData,
-            ...(variants ? { variants: { create: variants } } : {}),
+            ...(variants
+              ? {
+                  variants: {
+                    create: variants.map(({ image, ...v }) => ({
+                      ...v,
+                      image,
+                    })),
+                  },
+                }
+              : {}),
+            ...(images
+              ? {
+                  images: {
+                    deleteMany: {},
+                    create: images,
+                  },
+                }
+              : {}),
           },
-          include: { variants: true },
+          include: { variants: true, images: true },
         });
       });
     } catch (error) {
