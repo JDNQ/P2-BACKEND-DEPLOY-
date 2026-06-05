@@ -1,8 +1,8 @@
 -- AlterTable
-ALTER TABLE `product` MODIFY `shopId` INTEGER NULL;
+ALTER TABLE `Product` MODIFY `shopId` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `variant` ADD COLUMN `image` VARCHAR(255) NULL;
+ALTER TABLE `Variant` ADD COLUMN `image` VARCHAR(255) NULL;
 
 -- CreateTable
 CREATE TABLE `ProductImage` (
