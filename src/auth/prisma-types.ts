@@ -1,4 +1,5 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { Role } from "./role.enum";
 
 export type PrismaUser = {
   id: number;
