@@ -65,6 +65,13 @@ export class CreateProductDto {
   @Min(0)
   basePrice: number;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  shopId?: number;
+
   @ApiProperty({ type: [CreateVariantDto] })
   @IsArray()
   @ValidateNested({ each: true })

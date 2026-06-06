@@ -33,13 +33,13 @@ export class ProductsService {
   }
 
   create(dto: CreateProductDto) {
-    const { variants, images, ...productData } = dto;
+    const { variants, images, shopId, ...productData } = dto;
 
     return this.prisma.product.create({
       data: {
         ...productData,
         // TODO: connect to Shop via shopId when MANAGER/ADMIN endpoints are implemented.
-        shop: { connect: { id: (productData as any).shopId } },
+        ...(shopId ? { shop: { connect: { id: shopId } } } : {}),
         variants: {
           create: variants.map(({ image, ...v }) => ({ ...v, image })),
         },
