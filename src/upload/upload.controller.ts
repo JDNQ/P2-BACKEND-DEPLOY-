@@ -8,11 +8,28 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { v2 as cloudinary } from "cloudinary";
+import { Readable } from "stream";
+
+async function uploadToCloudinary(
+  buffer: Buffer,
+  folder: string,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image" },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result!.secure_url);
+      },
+    );
+    Readable.from(buffer).pipe(uploadStream);
+  });
+}
 
 @ApiTags("upload")
 @Controller("upload")
 export class UploadController {
-  // Upload nhiều ảnh cho product (tối đa 10)
   @Post("product-images")
   @ApiOperation({ summary: "Upload multiple product images (max 10)" })
   @ApiConsumes("multipart/form-data")
@@ -25,17 +42,18 @@ export class UploadController {
     },
   })
   @UseInterceptors(FilesInterceptor("files", 10))
-  uploadProductImages(@UploadedFiles() files: any[]) {
+  async uploadProductImages(@UploadedFiles() files: any[]) {
     if (!files || files.length === 0) {
       throw new BadRequestException("No files uploaded");
     }
 
-    return {
-      urls: files.map((f) => `/uploads/${f.filename}`),
-    };
+    const urls = await Promise.all(
+      files.map((f) => uploadToCloudinary(f.buffer, "tlmarket/products")),
+    );
+
+    return { urls };
   }
 
-  // Upload 1 ảnh cho variant
   @Post("variant-image")
   @ApiOperation({ summary: "Upload single variant image" })
   @ApiConsumes("multipart/form-data")
@@ -48,11 +66,12 @@ export class UploadController {
     },
   })
   @UseInterceptors(FileInterceptor("file"))
-  uploadVariantImage(@UploadedFile() file: any) {
+  async uploadVariantImage(@UploadedFile() file: any) {
     if (!file) {
       throw new BadRequestException("No file uploaded");
     }
 
-    return { url: `/uploads/${file.filename}` };
+    const url = await uploadToCloudinary(file.buffer, "tlmarket/variants");
+    return { url };
   }
 }
