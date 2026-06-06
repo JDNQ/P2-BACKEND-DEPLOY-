@@ -116,6 +116,18 @@ async function main() {
         "Áo polo cotton cao cấp, thoáng mát, phù hợp đi làm và đi chơi.",
       basePrice: 350000,
       shopId: shop1.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "S - Trắng", extraPrice: 0, stock: 50 },
@@ -136,6 +148,18 @@ async function main() {
       description: "Quần jeans co giãn 4 chiều, dáng slim fit hiện đại.",
       basePrice: 550000,
       shopId: shop1.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "29 - Xanh nhạt", extraPrice: 0, stock: 30 },
@@ -156,6 +180,18 @@ async function main() {
         "Giày thể thao cổ thấp, đế cao su chống trượt, thiết kế tối giản.",
       basePrice: 890000,
       shopId: shop1.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "Size 39 - Trắng", extraPrice: 0, stock: 20 },
@@ -179,6 +215,18 @@ async function main() {
         "Kem dưỡng ẩm snail mucin 92% dành cho da nhạy cảm, giúp phục hồi và làm sáng da.",
       basePrice: 320000,
       shopId: shop2.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "50ml", extraPrice: 0, stock: 100 },
@@ -196,6 +244,18 @@ async function main() {
         "Serum vitamin C 5% không kích ứng, làm đều màu da và chống oxy hóa.",
       basePrice: 480000,
       shopId: shop2.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "35ml - Standard", extraPrice: 0, stock: 60 },
@@ -211,6 +271,18 @@ async function main() {
       description: "Son lì nhung mịn, màu sắc đa dạng, bền màu cả ngày.",
       basePrice: 280000,
       shopId: shop2.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1586495777744-4e6232bf2e79?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1631214524020-3c69f3a4e4c1?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "#Nudist - Nude hồng", extraPrice: 0, stock: 70 },
@@ -230,6 +302,18 @@ async function main() {
         "Toner dưỡng ẩm Hyaluronic acid siêu cấp, không cồn, phù hợp mọi loại da.",
       basePrice: 195000,
       shopId: shop2.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "170ml - Lotion nhẹ", extraPrice: 0, stock: 120 },
@@ -252,6 +336,18 @@ async function main() {
         "Tai nghe chống ồn chủ động hàng đầu, âm thanh Hi-Res, pin 30 giờ.",
       basePrice: 7990000,
       shopId: shop3.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "Đen - Chính hãng VN", extraPrice: 0, stock: 15 },
@@ -269,6 +365,18 @@ async function main() {
         "Ốp lưng trong suốt hỗ trợ MagSafe, chống sốc 4 góc, chống ố vàng.",
       basePrice: 150000,
       shopId: shop3.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "iPhone 14", extraPrice: 0, stock: 80 },
@@ -289,6 +397,18 @@ async function main() {
         "Cáp sạc nhanh 100W, bọc dù chắc chắn, dài 1.8m, tương thích mọi thiết bị.",
       basePrice: 220000,
       shopId: shop3.id,
+      images: {
+        create: [
+          {
+            url: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400&q=80",
+            isPrimary: true,
+          },
+          {
+            url: "https://images.unsplash.com/photo-1615526675279-a3396f34a92e?w=400&q=80",
+            isPrimary: false,
+          },
+        ],
+      },
       variants: {
         create: [
           { variantName: "0.9m - Đen", extraPrice: -50000, stock: 100 },
