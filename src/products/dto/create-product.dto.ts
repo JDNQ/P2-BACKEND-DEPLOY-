@@ -19,7 +19,6 @@ export class CreateVariantDto {
   @ApiProperty({ default: 0 })
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
   extraPrice: number;
 
   @ApiProperty({ default: 0 })
