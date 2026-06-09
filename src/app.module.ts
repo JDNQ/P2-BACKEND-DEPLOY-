@@ -12,6 +12,11 @@ import { UploadModule } from "./upload/upload.module";
 import { CartModule } from "./cart/cart.module";
 import { VouchersModule } from "./vouchers/vouchers.module";
 import { OrdersModule } from "./orders/orders.module";
+import { WishlistModule } from "./wishlist/wishlist.module";
+import { NotificationsModule } from "./notifications/notifications.module";
+import { LogsModule } from "./logs/logs.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
+import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
@@ -29,6 +34,11 @@ import { OrdersModule } from "./orders/orders.module";
     CartModule,
     VouchersModule,
     OrdersModule,
+    WishlistModule,
+    NotificationsModule,
+    LogsModule,
+    DashboardModule,
+    HealthModule,
   ],
 
   controllers: [AppController],

@@ -1,10 +1,11 @@
-import { Body, Controller, Post, HttpCode } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { Role } from "./role.enum";
+import { JwtAuthGuard } from "./jwt-auth.guard";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -32,5 +33,13 @@ export class AuthController {
   @ApiOperation({ summary: "ADMIN only: create manager" })
   createManager(@Body() dto: RegisterDto & { role: Role }) {
     return this.authService.createManager(dto);
+  }
+
+  @Get("profile")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get current user profile" })
+  getProfile(@Req() req: any) {
+    return this.authService.getProfile(req.user.id);
   }
 }

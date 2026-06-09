@@ -7,6 +7,15 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CreateOrderDto, UpdateOrderStatusDto } from "./dto/order.dto";
 import { VouchersService } from "../vouchers/vouchers.service";
 
+const orderIncludes = {
+  items: {
+    include: {
+      product: { include: { images: true } },
+      variant: true,
+    },
+  },
+};
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -53,20 +62,22 @@ export class OrdersService {
       }
 
       let discountAmount = 0;
+      let voucherId: number | undefined;
 
       if (dto.voucherCode) {
         const applied = await this.vouchersService.applyVoucher({
           code: dto.voucherCode,
           orderTotal: subtotal,
         });
-        discountAmount = applied.discountAmount;
+        discountAmount = applied.discount;
+        voucherId = applied.voucher?.id;
       }
 
-      // Increase voucher usedCount if applied
+      // Increase voucher usageCount if applied
       if (dto.voucherCode) {
         await transaction.voucher.update({
           where: { code: dto.voucherCode },
-          data: { usedCount: { increment: 1 } },
+          data: { usageCount: { increment: 1 } },
         });
       }
 
@@ -87,7 +98,11 @@ export class OrdersService {
           status: "PENDING",
           note: dto.note,
           voucherCode: dto.voucherCode ?? null,
+          voucherId: voucherId ?? null,
           discountAmount,
+          phoneNumber: dto.phoneNumber ?? null,
+          shippingAddress: dto.shippingAddress ?? null,
+          paymentMethod: dto.paymentMethod ?? null,
           items: {
             create: orderItemsData.map((it) => ({
               productId: it.productId,
@@ -99,7 +114,7 @@ export class OrdersService {
             })),
           },
         },
-        include: { items: true },
+        include: orderIncludes,
       });
 
       // Clear cart items corresponding
@@ -113,7 +128,7 @@ export class OrdersService {
 
       return transaction.order.findUnique({
         where: { id: order.id },
-        include: { items: true },
+        include: orderIncludes,
       });
     });
   }
@@ -121,7 +136,7 @@ export class OrdersService {
   findMyOrders(userId: number) {
     return this.prisma.order.findMany({
       where: { userId },
-      include: { items: true },
+      include: orderIncludes,
       orderBy: { createdAt: "desc" },
     });
   }
@@ -129,13 +144,13 @@ export class OrdersService {
   findOne(id: number, userId: number) {
     return this.prisma.order.findFirst({
       where: { id, userId },
-      include: { items: true },
+      include: orderIncludes,
     });
   }
 
   findAll() {
     return this.prisma.order.findMany({
-      include: { user: true, items: true },
+      include: { user: true, ...orderIncludes },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -147,7 +162,7 @@ export class OrdersService {
     return this.prisma.order.update({
       where: { id },
       data: { status: dto.status },
-      include: { items: true },
+      include: orderIncludes,
     });
   }
 }

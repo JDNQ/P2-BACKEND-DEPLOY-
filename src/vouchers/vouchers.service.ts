@@ -68,7 +68,7 @@ export class VouchersService {
       throw new BadRequestException("Voucher expired");
     }
 
-    if (voucher.usedCount >= voucher.usageLimit) {
+    if (voucher.usageCount >= voucher.usageLimit) {
       throw new BadRequestException("Voucher usage limit reached");
     }
 
@@ -96,9 +96,12 @@ export class VouchersService {
     const finalPrice = dto.orderTotal - discountAmount;
 
     return {
-      voucher,
-      discountAmount,
+      discount: discountAmount,
       finalPrice,
+      voucher: {
+        ...voucher,
+        usageCount: voucher.usageCount,
+      },
     };
   }
 

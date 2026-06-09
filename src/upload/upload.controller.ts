@@ -74,4 +74,25 @@ export class UploadController {
     const url = await uploadToCloudinary(file.buffer, "tlmarket/variants");
     return { url };
   }
+
+  @Post("avatar")
+  @ApiOperation({ summary: "Upload avatar image" })
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        file: { type: "string", format: "binary" },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor("file"))
+  async uploadAvatar(@UploadedFile() file: any) {
+    if (!file) {
+      throw new BadRequestException("No file uploaded");
+    }
+
+    const url = await uploadToCloudinary(file.buffer, "tlmarket/avatars");
+    return { url };
+  }
 }

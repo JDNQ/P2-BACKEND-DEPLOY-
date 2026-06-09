@@ -48,6 +48,21 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @ApiPropertyOptional({ example: "0123456789" })
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiPropertyOptional({ example: "123 Đường ABC, Quận 1, TP.HCM" })
+  @IsOptional()
+  @IsString()
+  shippingAddress?: string;
+
+  @ApiPropertyOptional({ example: "COD" })
+  @IsOptional()
+  @IsString()
+  paymentMethod?: string;
 }
 
 export class UpdateOrderStatusDto {
