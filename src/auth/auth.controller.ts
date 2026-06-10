@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, HttpCode, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { SocialLoginDto } from "./dto/social-login.dto";
 import { Role } from "./role.enum";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
@@ -41,5 +42,17 @@ export class AuthController {
   @ApiOperation({ summary: "Get current user profile" })
   getProfile(@Req() req: any) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Post("social/:provider")
+  @HttpCode(200)
+  @ApiOperation({ summary: "Social login (google/facebook)" })
+  @ApiParam({ name: "provider", example: "google", enum: ["google", "facebook"] })
+  @ApiBody({ type: SocialLoginDto })
+  socialLogin(
+    @Param("provider") provider: string,
+    @Body() dto: SocialLoginDto,
+  ) {
+    return this.authService.socialLogin(provider, dto.token);
   }
 }
