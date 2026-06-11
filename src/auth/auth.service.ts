@@ -155,26 +155,31 @@ export class AuthService {
     let name: string;
     let socialId: string;
 
-    if (provider === "google") {
-      const resp = await fetch(
-        `https://oauth2.googleapis.com/tokeninfo?id_token=${token}`,
-      );
-      if (!resp.ok) throw new UnauthorizedException("Invalid Google token");
-      const data = await resp.json();
-      email = data.email;
-      name = data.name ?? data.email.split("@")[0];
-      socialId = data.sub;
-    } else if (provider === "facebook") {
-      const resp = await fetch(
-        `https://graph.facebook.com/me?access_token=${token}&fields=id,name,email`,
-      );
-      if (!resp.ok) throw new UnauthorizedException("Invalid Facebook token");
-      const data = await resp.json();
-      email = data.email ?? `${data.id}@facebook.com`;
-      name = data.name ?? `fb_${data.id}`;
-      socialId = data.id;
-    } else {
-      throw new BadRequestException(`Unsupported provider: ${provider}`);
+    try {
+      if (provider === "google") {
+        const resp = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${token}`,
+        );
+        if (!resp.ok) throw new UnauthorizedException("Invalid Google token");
+        const data = await resp.json();
+        email = data.email;
+        name = data.name ?? data.email.split("@")[0];
+        socialId = data.sub;
+      } else if (provider === "facebook") {
+        const resp = await fetch(
+          `https://graph.facebook.com/me?access_token=${token}&fields=id,name,email`,
+        );
+        if (!resp.ok) throw new UnauthorizedException("Invalid Facebook token");
+        const data = await resp.json();
+        email = data.email ?? `${data.id}@facebook.com`;
+        name = data.name ?? `fb_${data.id}`;
+        socialId = data.id;
+      } else {
+        throw new BadRequestException(`Unsupported provider: ${provider}`);
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) throw error;
+      throw new UnauthorizedException("Social login failed. Please try again.");
     }
 
     if (!email) {

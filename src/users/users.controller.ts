@@ -2,14 +2,16 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   Param,
   ParseIntPipe,
   Patch,
+  Req,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Role } from "../auth/role.enum";
 import { Roles } from "../auth/roles.decorator";
@@ -20,17 +22,19 @@ import { UsersService } from "./users.service";
 @ApiTags("users")
 @Controller("users")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN, Role.MANAGER)
+@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @Roles(Role.ADMIN, Role.MANAGER)
   @ApiOperation({ summary: "Get all users" })
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get(":id")
+  @Roles(Role.ADMIN, Role.MANAGER)
   @ApiOperation({ summary: "Get user by id" })
   @ApiParam({ name: "id", type: Number })
   findOne(@Param("id", ParseIntPipe) id: number) {
@@ -41,7 +45,14 @@ export class UsersController {
   @ApiOperation({ summary: "Update user profile" })
   @ApiParam({ name: "id", type: Number })
   @ApiBody({ type: UpdateUserDto })
-  update(@Param("id", ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
+  update(
+    @Req() req: any,
+    @Param("id", ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
+    if (req.user.id !== id && req.user.role !== Role.ADMIN && req.user.role !== Role.MANAGER) {
+      throw new ForbiddenException("Forbidden");
+    }
     return this.usersService.update(id, dto);
   }
 
@@ -64,6 +75,7 @@ export class UsersController {
   }
 
   @Delete(":id")
+  @Roles(Role.ADMIN, Role.MANAGER)
   @HttpCode(204)
   @ApiOperation({ summary: "Delete user" })
   @ApiParam({ name: "id", type: Number })

@@ -29,39 +29,30 @@ export class CartService {
 
     const existing = await this.prisma.cartItem.findUnique({
       where: {
-        userId_variantId: {
-          userId,
-          variantId,
-        },
+        userId_variantId: { userId, variantId },
       },
       include: { variant: true },
     });
 
     if (existing) {
       const nextQuantity = existing.quantity + quantity;
-
       if (existing.variant.stock < nextQuantity) {
         throw new BadRequestException("Variant stock not enough");
       }
-
-      const updated = await this.prisma.cartItem.update({
-        where: { id: existing.id },
-        data: { quantity: nextQuantity },
-        include: {
-          product: { include: { images: true } },
-          variant: true,
-        },
-      });
-
-      return updated;
     }
 
-    return this.prisma.cartItem.create({
-      data: {
+    return this.prisma.cartItem.upsert({
+      where: {
+        userId_variantId: { userId, variantId },
+      },
+      create: {
         userId,
         productId,
         variantId,
         quantity,
+      },
+      update: {
+        quantity: { increment: quantity },
       },
       include: {
         product: { include: { images: true } },
