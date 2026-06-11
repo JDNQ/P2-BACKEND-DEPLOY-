@@ -162,6 +162,10 @@ export class AuthService {
         );
         if (!resp.ok) throw new UnauthorizedException("Invalid Google token");
         const data = await resp.json();
+        const clientId = this.configService.get<string>("GOOGLE_CLIENT_ID");
+        if (clientId && data.aud !== clientId) {
+          throw new UnauthorizedException("Invalid token audience");
+        }
         email = data.email;
         name = data.name ?? data.email.split("@")[0];
         socialId = data.sub;
