@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
@@ -28,16 +27,8 @@ export class ProductsController {
   @Get()
   @ApiOperation({ summary: 'Get all products' })
   @ApiResponse({ status: 200, description: 'Return all products with variants.' })
-  async findAll() {
-    try {
-      return await this.productsService.findAll();
-    } catch (e: any) {
-      throw new InternalServerErrorException({
-        message: e?.message || 'Unknown error',
-        code: e?.code,
-        meta: e?.meta,
-      });
-    }
+  findAll() {
+    return this.productsService.findAll();
   }
 
   @Get(':id')

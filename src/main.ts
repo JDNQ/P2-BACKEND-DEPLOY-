@@ -1,11 +1,21 @@
 import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import { execSync } from "child_process";
 import { ResponseInterceptor } from "./common/response.interceptor";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
+  try {
+    execSync("npx prisma db push --accept-data-loss", {
+      stdio: "inherit",
+      timeout: 30000,
+    });
+  } catch {
+    console.warn("prisma db push failed, continuing...");
+  }
+
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
