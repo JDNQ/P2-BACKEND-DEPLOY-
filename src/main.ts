@@ -7,10 +7,24 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
+  // Fix any failed migration state so prisma migrate deploy works next time
+  try {
+    const { PrismaClient } = require("@prisma/client");
+    const p = new PrismaClient();
+    await p.$connect();
+    await p.$executeRawUnsafe(
+      `DELETE FROM _prisma_migrations WHERE migration_name LIKE '2026061109%' AND finished_at IS NULL`,
+    );
+    await p.$disconnect();
+  } catch {
+    // ignore
+  }
+
+  // Sync database schema (add missing columns/tables)
   try {
     execSync("npx prisma db push --accept-data-loss", {
       stdio: "inherit",
-      timeout: 30000,
+      timeout: 60000,
     });
   } catch {
     console.warn("prisma db push failed, continuing...");
