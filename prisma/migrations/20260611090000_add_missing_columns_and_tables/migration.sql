@@ -1,22 +1,5 @@
--- Upgrade User
-ALTER TABLE `User` ADD COLUMN `status` VARCHAR(20) NOT NULL DEFAULT 'Active',
-  ADD COLUMN `avatarUrl` VARCHAR(255) NULL;
-
--- Upgrade Product
-ALTER TABLE `Product` ADD COLUMN `visible` BOOLEAN NOT NULL DEFAULT true;
-
--- Upgrade Variant
-ALTER TABLE `Variant` ADD COLUMN `color` VARCHAR(50) NULL,
-  ADD COLUMN `size` VARCHAR(50) NULL;
-
--- Upgrade Order
-ALTER TABLE `Order` ADD COLUMN `voucherId` INTEGER NULL,
-  ADD COLUMN `phoneNumber` VARCHAR(20) NULL,
-  ADD COLUMN `shippingAddress` TEXT NULL,
-  ADD COLUMN `paymentMethod` VARCHAR(50) NULL;
-
 -- CreateTable Wishlist
-CREATE TABLE `Wishlist` (
+CREATE TABLE IF NOT EXISTS `Wishlist` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NOT NULL,
     `productId` INTEGER NOT NULL,
@@ -26,7 +9,7 @@ CREATE TABLE `Wishlist` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable Notification
-CREATE TABLE `Notification` (
+CREATE TABLE IF NOT EXISTS `Notification` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NOT NULL,
     `title` VARCHAR(255) NOT NULL,
@@ -39,7 +22,7 @@ CREATE TABLE `Notification` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable ResetToken
-CREATE TABLE `ResetToken` (
+CREATE TABLE IF NOT EXISTS `ResetToken` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `email` VARCHAR(100) NOT NULL,
     `token` VARCHAR(255) NOT NULL,
@@ -51,7 +34,7 @@ CREATE TABLE `ResetToken` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable ActivityLog
-CREATE TABLE `ActivityLog` (
+CREATE TABLE IF NOT EXISTS `ActivityLog` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NULL,
     `action` VARCHAR(100) NOT NULL,
@@ -62,10 +45,3 @@ CREATE TABLE `ActivityLog` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- AddForeignKeys
-ALTER TABLE `Order` ADD CONSTRAINT `Order_voucherId_fkey` FOREIGN KEY (`voucherId`) REFERENCES `Voucher`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE `Wishlist` ADD CONSTRAINT `Wishlist_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `Wishlist` ADD CONSTRAINT `Wishlist_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `Notification` ADD CONSTRAINT `Notification_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `ActivityLog` ADD CONSTRAINT `ActivityLog_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
