@@ -20,6 +20,7 @@ import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
 import { Role } from "../auth/role.enum";
 import { ApplyVoucherDto, CreateVoucherDto } from "./dto/voucher.dto";
+import { UpdateVoucherDto } from "./dto/update-voucher.dto";
 import { VouchersService } from "./vouchers.service";
 
 @ApiTags("vouchers")
@@ -59,6 +60,16 @@ export class VouchersController {
   @ApiResponse({ status: 200, description: "Return discount and final price" })
   apply(@Body() dto: ApplyVoucherDto) {
     return this.vouchersService.applyVoucher(dto);
+  }
+
+  @Patch(":id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: "Update voucher (ADMIN only)" })
+  @ApiParam({ name: "id", type: Number })
+  @ApiBody({ type: UpdateVoucherDto })
+  update(@Param("id", ParseIntPipe) id: number, @Body() dto: UpdateVoucherDto) {
+    return this.vouchersService.update(id, dto);
   }
 
   @Patch(":id/deactivate")

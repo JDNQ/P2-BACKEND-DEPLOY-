@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { ApplyVoucherDto, CreateVoucherDto } from "./dto/voucher.dto";
+import { UpdateVoucherDto } from "./dto/update-voucher.dto";
 import { Prisma } from "@prisma/client";
 
 @Injectable()
@@ -103,6 +105,16 @@ export class VouchersService {
         usageCount: voucher.usageCount,
       },
     };
+  }
+
+  async update(id: number, dto: UpdateVoucherDto) {
+    const existing = await this.prisma.voucher.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException("Voucher not found");
+
+    return this.prisma.voucher.update({
+      where: { id },
+      data: dto,
+    });
   }
 
   async deactivate(id: number) {

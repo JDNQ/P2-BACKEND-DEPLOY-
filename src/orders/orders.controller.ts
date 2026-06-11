@@ -77,4 +77,12 @@ export class OrdersController {
   ) {
     return this.ordersService.updateStatus(id, dto);
   }
+
+  @Post(":id/cancel")
+  @ApiOperation({ summary: "User: cancel my own PENDING order" })
+  @ApiParam({ name: "id", type: Number })
+  @ApiResponse({ status: 200, description: "Order cancelled" })
+  cancel(@Req() req: any, @Param("id", ParseIntPipe) id: number) {
+    return this.ordersService.cancelByUser(id, req.user.id);
+  }
 }

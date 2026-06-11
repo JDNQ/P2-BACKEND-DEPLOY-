@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -162,6 +163,32 @@ export class OrdersService {
     return this.prisma.order.update({
       where: { id },
       data: { status: dto.status },
+      include: orderIncludes,
+    });
+  }
+
+  async cancelByUser(orderId: number, userId: number) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.userId !== userId) throw new ForbiddenException("Not your order");
+    if (order.status !== "PENDING") {
+      throw new BadRequestException("Only PENDING orders can be cancelled");
+    }
+
+    // Restore stock
+    const items = await this.prisma.orderItem.findMany({
+      where: { orderId },
+    });
+    for (const item of items) {
+      await this.prisma.variant.update({
+        where: { id: item.variantId },
+        data: { stock: { increment: item.quantity } },
+      });
+    }
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: "CANCELLED" },
       include: orderIncludes,
     });
   }

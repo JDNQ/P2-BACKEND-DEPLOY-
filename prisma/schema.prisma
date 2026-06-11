@@ -172,6 +172,15 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model ResetToken {
+  id        Int      @id @default(autoincrement())
+  email     String   @db.VarChar(100)
+  token     String   @unique @db.VarChar(255)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
 model ActivityLog {
   id        Int      @id @default(autoincrement())
   userId    Int?

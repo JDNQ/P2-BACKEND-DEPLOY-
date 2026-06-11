@@ -5,6 +5,7 @@ import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { SocialLoginDto } from "./dto/social-login.dto";
+import { ForgotPasswordDto, ResetPasswordDto } from "./dto/password-reset.dto";
 import { Role } from "./role.enum";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
@@ -54,5 +55,21 @@ export class AuthController {
     @Body() dto: SocialLoginDto,
   ) {
     return this.authService.socialLogin(provider, dto.token);
+  }
+
+  @Post("forgot-password")
+  @HttpCode(200)
+  @ApiOperation({ summary: "Request password reset email" })
+  @ApiBody({ type: ForgotPasswordDto })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post("reset-password")
+  @HttpCode(200)
+  @ApiOperation({ summary: "Reset password with token" })
+  @ApiBody({ type: ResetPasswordDto })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }

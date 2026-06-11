@@ -9,6 +9,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { ResetPasswordDto } from "./dto/password-reset.dto";
 import * as crypto from "crypto";
 import * as bcrypt from "bcrypt";
 import { Role } from "./role.enum";
@@ -219,6 +220,65 @@ export class AuthService {
         avatarUrl: user.avatarUrl,
       },
     };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await (this.prisma as any).user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't reveal whether email exists
+      return { message: "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu." };
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await (this.prisma as any).resetToken.create({
+      data: { email, token, expiresAt },
+    });
+
+    // In production, send email via SMTP. For now, return token in response.
+    return {
+      message: "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.",
+      ...(process.env.NODE_ENV !== "production" && { resetToken: token }),
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException("Mật khẩu nhập lại không khớp");
+    }
+
+    const record = await (this.prisma as any).resetToken.findUnique({
+      where: { token: dto.token },
+    });
+
+    if (!record || record.used) {
+      throw new BadRequestException("Token không hợp lệ hoặc đã được sử dụng");
+    }
+
+    if (record.expiresAt < new Date()) {
+      throw new BadRequestException("Token đã hết hạn");
+    }
+
+    const user = await (this.prisma as any).user.findUnique({
+      where: { email: record.email },
+    });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const password = await bcrypt.hash(dto.password, 10);
+    await (this.prisma as any).user.update({
+      where: { id: user.id },
+      data: { password },
+    });
+
+    await (this.prisma as any).resetToken.update({
+      where: { id: record.id },
+      data: { used: true },
+    });
+
+    return { message: "Mật khẩu đã được đặt lại thành công." };
   }
 
   async getProfile(userId: number) {
