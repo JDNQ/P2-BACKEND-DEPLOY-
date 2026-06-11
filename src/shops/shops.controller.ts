@@ -20,7 +20,7 @@ export class ShopsController {
   constructor(private readonly shopsService: ShopsService) {}
 
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.MANAGER)
   findAll() {
     return this.shopsService.findAll();
   }

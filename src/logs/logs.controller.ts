@@ -9,12 +9,12 @@ import { LogsService } from "./logs.service";
 @ApiTags("logs")
 @Controller("logs")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN, Role.MANAGER)
+@Roles(Role.MANAGER)
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
   @Get()
-  @ApiOperation({ summary: "Get activity logs (Admin/Manager)" })
+  @ApiOperation({ summary: "Get activity logs (Manager only)" })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
   @ApiQuery({ name: "action", required: false, type: String })

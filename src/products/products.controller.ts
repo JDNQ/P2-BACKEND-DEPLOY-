@@ -8,8 +8,13 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { Role } from '../auth/role.enum';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
@@ -35,8 +40,10 @@ export class ProductsController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MANAGER)
   @HttpCode(201)
-  @ApiOperation({ summary: 'Create a product' })
+  @ApiOperation({ summary: 'Create a product (Admin/Manager)' })
   @ApiBody({ type: CreateProductDto })
   @ApiResponse({ status: 201, description: 'Create a new product with variants.' })
   create(@Body() createProductDto: CreateProductDto) {
@@ -44,7 +51,9 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a product' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MANAGER)
+  @ApiOperation({ summary: 'Update a product (Admin/Manager)' })
   @ApiBody({ type: UpdateProductDto })
   @ApiResponse({ status: 200, description: 'Update a product with variants.' })
   @ApiResponse({ status: 404, description: 'Product not found.' })
@@ -56,11 +65,26 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MANAGER)
   @HttpCode(204)
-  @ApiOperation({ summary: 'Delete a product' })
+  @ApiOperation({ summary: 'Delete a product (Admin/Manager)' })
   @ApiResponse({ status: 204, description: 'Delete a product.' })
   @ApiResponse({ status: 404, description: 'Product not found.' })
   async remove(@Param('id', ParseIntPipe) id: number) {
     await this.productsService.remove(id);
+  }
+
+  @Patch(':id/visibility')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MANAGER)
+  @ApiOperation({ summary: 'Toggle product visibility (Admin/Manager)' })
+  @ApiBody({ schema: { type: 'object', properties: { visible: { type: 'boolean' } } } })
+  @ApiResponse({ status: 200, description: 'Product visibility updated.' })
+  async toggleVisibility(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('visible') visible: boolean,
+  ) {
+    return this.productsService.toggleVisibility(id, visible);
   }
 }

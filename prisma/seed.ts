@@ -4,107 +4,129 @@ import * as bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("Seeding database...");
 
-  // ─── Users ───────────────────────────────────────────────
-  const adminPassword = await bcrypt.hash("Admin@123456", 10);
-  const managerPassword = await bcrypt.hash("Manager@123", 10);
-  const userPassword = await bcrypt.hash("User@123456", 10);
+  // ─── Clear existing data ──────────────────────────────────
+  await prisma.activityLog.deleteMany();
+  await prisma.notification.deleteMany();
+  await prisma.wishlist.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.productImage.deleteMany();
+  await prisma.variant.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.shop.deleteMany();
+  await prisma.voucher.deleteMany();
+  await prisma.resetToken.deleteMany();
+  await prisma.user.deleteMany();
 
-  const admin = await prisma.user.upsert({
-    where: { username: "adminuser" },
-    update: {},
-    create: {
-      username: "adminuser",
-      email: "admin@tlmarket.com",
-      password: adminPassword,
-      role: "ADMIN",
-    },
-  });
+  console.log("Cleared existing data");
 
-  const manager1 = await prisma.user.upsert({
-    where: { username: "manager_nam" },
-    update: {},
-    create: {
+  // ─── Passwords ────────────────────────────────────────────
+  const managerPwd = await bcrypt.hash("Manager@123", 10);
+  const adminPwd = await bcrypt.hash("Admin@123456", 10);
+  const userPwd = await bcrypt.hash("User@123456", 10);
+
+  // ─── Users ────────────────────────────────────────────────
+  const managerNam = await prisma.user.create({
+    data: {
       username: "manager_nam",
       email: "nam.manager@tlmarket.com",
-      password: managerPassword,
+      password: managerPwd,
       role: "MANAGER",
+      status: "Active",
     },
   });
 
-  const manager2 = await prisma.user.upsert({
-    where: { username: "manager_linh" },
-    update: {},
-    create: {
+  const managerLinh = await prisma.user.create({
+    data: {
       username: "manager_linh",
       email: "linh.manager@tlmarket.com",
-      password: managerPassword,
+      password: managerPwd,
       role: "MANAGER",
+      status: "Active",
     },
   });
 
-  const user1 = await prisma.user.upsert({
-    where: { username: "user_minh" },
-    update: {},
-    create: {
+  const adminHoang = await prisma.user.create({
+    data: {
+      username: "admin_hoang",
+      email: "hoang.admin@tlmarket.com",
+      password: adminPwd,
+      role: "ADMIN",
+      status: "Active",
+    },
+  });
+
+  const adminMai = await prisma.user.create({
+    data: {
+      username: "admin_mai",
+      email: "mai.admin@tlmarket.com",
+      password: adminPwd,
+      role: "ADMIN",
+      status: "Active",
+    },
+  });
+
+  const userMinh = await prisma.user.create({
+    data: {
       username: "user_minh",
       email: "minh@gmail.com",
-      password: userPassword,
+      password: userPwd,
       role: "USER",
+      status: "Active",
     },
   });
 
-  const user2 = await prisma.user.upsert({
-    where: { username: "user_trang" },
-    update: {},
-    create: {
+  const userTrang = await prisma.user.create({
+    data: {
       username: "user_trang",
       email: "trang@gmail.com",
-      password: userPassword,
+      password: userPwd,
       role: "USER",
+      status: "Active",
     },
   });
 
-  const user3 = await prisma.user.upsert({
-    where: { username: "user_hung" },
-    update: {},
-    create: {
+  const userHung = await prisma.user.create({
+    data: {
       username: "user_hung",
       email: "hung@gmail.com",
-      password: userPassword,
+      password: userPwd,
       role: "USER",
+      status: "Active",
     },
   });
 
-  console.log("✅ Users created");
+  console.log("Users created");
 
-  // ─── Shops ───────────────────────────────────────────────
-  const shop1 = await prisma.shop.create({
+  // ─── Shops (owned by Managers) ──────────────────────────
+  const shopFashion = await prisma.shop.create({
     data: {
       shopName: "Nam's Fashion Store",
       description: "Chuyên thời trang nam cao cấp, hàng nhập khẩu chính hãng.",
-      ownerId: manager1.id,
+      ownerId: managerNam.id,
     },
   });
 
-  const shop2 = await prisma.shop.create({
+  const shopBeauty = await prisma.shop.create({
     data: {
       shopName: "Linh Beauty & Skincare",
       description: "Mỹ phẩm và chăm sóc da chính hãng Hàn Quốc, Nhật Bản.",
-      ownerId: manager2.id,
+      ownerId: managerLinh.id,
     },
   });
 
-  const shop3 = await prisma.shop.create({
+  const shopTech = await prisma.shop.create({
     data: {
       shopName: "TechZone Accessories",
       description: "Phụ kiện công nghệ, điện thoại, laptop giá tốt.",
-      ownerId: manager1.id,
+      ownerId: managerNam.id,
     },
   });
 
-  console.log("✅ Shops created");
+  console.log("Shops created");
 
   // ─── Products & Variants ─────────────────────────────────
 
@@ -112,20 +134,14 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Áo Polo Premium",
-      description:
-        "Áo polo cotton cao cấp, thoáng mát, phù hợp đi làm và đi chơi.",
+      description: "Áo polo cotton cao cấp, thoáng mát, phù hợp đi làm và đi chơi.",
       basePrice: 350000,
-      shopId: shop1.id,
+      visible: true,
+      shopId: shopFashion.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -147,17 +163,12 @@ async function main() {
       productName: "Quần Jeans Slim Fit",
       description: "Quần jeans co giãn 4 chiều, dáng slim fit hiện đại.",
       basePrice: 550000,
-      shopId: shop1.id,
+      visible: true,
+      shopId: shopFashion.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -176,20 +187,14 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Giày Sneaker Classic",
-      description:
-        "Giày thể thao cổ thấp, đế cao su chống trượt, thiết kế tối giản.",
+      description: "Giày thể thao cổ thấp, đế cao su chống trượt, thiết kế tối giản.",
       basePrice: 890000,
-      shopId: shop1.id,
+      visible: true,
+      shopId: shopFashion.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -211,20 +216,14 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Kem Dưỡng Da COSRX",
-      description:
-        "Kem dưỡng ẩm snail mucin 92% dành cho da nhạy cảm, giúp phục hồi và làm sáng da.",
+      description: "Kem dưỡng ẩm snail mucin 92% dành cho da nhạy cảm, giúp phục hồi và làm sáng da.",
       basePrice: 320000,
-      shopId: shop2.id,
+      visible: true,
+      shopId: shopBeauty.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -240,20 +239,14 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Serum Vitamin C Klairs",
-      description:
-        "Serum vitamin C 5% không kích ứng, làm đều màu da và chống oxy hóa.",
+      description: "Serum vitamin C 5% không kích ứng, làm đều màu da và chống oxy hóa.",
       basePrice: 480000,
-      shopId: shop2.id,
+      visible: true,
+      shopId: shopBeauty.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -270,17 +263,12 @@ async function main() {
       productName: "Son Môi 3CE Velvet",
       description: "Son lì nhung mịn, màu sắc đa dạng, bền màu cả ngày.",
       basePrice: 280000,
-      shopId: shop2.id,
+      visible: true,
+      shopId: shopBeauty.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1586495777744-4e6232bf2e79?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1631214524020-3c69f3a4e4c1?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1586495777744-4e6232bf2e79?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1631214524020-3c69f3a4e4c1?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -298,30 +286,20 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Toner Hada Labo",
-      description:
-        "Toner dưỡng ẩm Hyaluronic acid siêu cấp, không cồn, phù hợp mọi loại da.",
+      description: "Toner dưỡng ẩm Hyaluronic acid siêu cấp, không cồn, phù hợp mọi loại da.",
       basePrice: 195000,
-      shopId: shop2.id,
+      visible: true,
+      shopId: shopBeauty.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
         create: [
           { variantName: "170ml - Lotion nhẹ", extraPrice: 0, stock: 120 },
-          {
-            variantName: "170ml - Lotion giàu ẩm",
-            extraPrice: 15000,
-            stock: 90,
-          },
+          { variantName: "170ml - Lotion giàu ẩm", extraPrice: 15000, stock: 90 },
           { variantName: "400ml - Refill", extraPrice: 80000, stock: 50 },
         ],
       },
@@ -332,20 +310,14 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Tai Nghe Bluetooth Sony WH-1000XM5",
-      description:
-        "Tai nghe chống ồn chủ động hàng đầu, âm thanh Hi-Res, pin 30 giờ.",
+      description: "Tai nghe chống ồn chủ động hàng đầu, âm thanh Hi-Res, pin 30 giờ.",
       basePrice: 7990000,
-      shopId: shop3.id,
+      visible: true,
+      shopId: shopTech.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -361,20 +333,14 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Ốp Lưng iPhone MagSafe",
-      description:
-        "Ốp lưng trong suốt hỗ trợ MagSafe, chống sốc 4 góc, chống ố vàng.",
+      description: "Ốp lưng trong suốt hỗ trợ MagSafe, chống sốc 4 góc, chống ố vàng.",
       basePrice: 150000,
-      shopId: shop3.id,
+      visible: true,
+      shopId: shopTech.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -393,20 +359,14 @@ async function main() {
   await prisma.product.create({
     data: {
       productName: "Cáp Sạc Anker USB-C 100W",
-      description:
-        "Cáp sạc nhanh 100W, bọc dù chắc chắn, dài 1.8m, tương thích mọi thiết bị.",
+      description: "Cáp sạc nhanh 100W, bọc dù chắc chắn, dài 1.8m, tương thích mọi thiết bị.",
       basePrice: 220000,
-      shopId: shop3.id,
+      visible: true,
+      shopId: shopTech.id,
       images: {
         create: [
-          {
-            url: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400&q=80",
-            isPrimary: true,
-          },
-          {
-            url: "https://images.unsplash.com/photo-1615526675279-a3396f34a92e?w=400&q=80",
-            isPrimary: false,
-          },
+          { url: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400&q=80", isPrimary: true },
+          { url: "https://images.unsplash.com/photo-1615526675279-a3396f34a92e?w=400&q=80", isPrimary: false },
         ],
       },
       variants: {
@@ -420,15 +380,63 @@ async function main() {
     },
   });
 
-  console.log("✅ Products & Variants created");
-  console.log("🎉 Seed completed!");
-  console.log("\n📋 Account list:");
-  console.log("  ADMIN    → adminuser / Admin@123456");
-  console.log("  MANAGER  → manager_nam / Manager@123");
-  console.log("  MANAGER  → manager_linh / Manager@123");
-  console.log("  USER     → user_minh / User@123456");
-  console.log("  USER     → user_trang / User@123456");
-  console.log("  USER     → user_hung / User@123456");
+  console.log("Products & Variants created");
+
+  // ─── Vouchers ─────────────────────────────────────────────
+  await prisma.voucher.create({
+    data: {
+      code: "WELCOME10",
+      description: "Giảm 10% cho đơn hàng đầu tiên, tối đa 50k",
+      discountType: "PERCENT",
+      discountValue: 10,
+      maxDiscount: 50000,
+      minOrderValue: 100000,
+      usageLimit: 500,
+      usageCount: 0,
+      isActive: true,
+      expiresAt: new Date("2027-12-31"),
+    },
+  });
+
+  await prisma.voucher.create({
+    data: {
+      code: "FREESHIP",
+      description: "Miễn phí vận chuyển cho đơn hàng từ 200k",
+      discountType: "FIXED",
+      discountValue: 30000,
+      minOrderValue: 200000,
+      usageLimit: 200,
+      usageCount: 0,
+      isActive: true,
+      expiresAt: new Date("2026-12-31"),
+    },
+  });
+
+  await prisma.voucher.create({
+    data: {
+      code: "SALE50",
+      description: "Giảm 50% cho đơn hàng từ 500k, tối đa 100k",
+      discountType: "PERCENT",
+      discountValue: 50,
+      maxDiscount: 100000,
+      minOrderValue: 500000,
+      usageLimit: 100,
+      usageCount: 0,
+      isActive: true,
+      expiresAt: new Date("2026-09-30"),
+    },
+  });
+
+  console.log("Vouchers created");
+  console.log("Seed completed!");
+  console.log("\nAccount list:");
+  console.log("  MANAGER → manager_nam  / Manager@123");
+  console.log("  MANAGER → manager_linh / Manager@123");
+  console.log("  ADMIN   → admin_hoang  / Admin@123456");
+  console.log("  ADMIN   → admin_mai    / Admin@123456");
+  console.log("  USER    → user_minh    / User@123456");
+  console.log("  USER    → user_trang   / User@123456");
+  console.log("  USER    → user_hung    / User@123456");
 }
 
 main()

@@ -45,8 +45,8 @@ export class VouchersController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: "Create voucher (ADMIN only)" })
+  @Roles(Role.MANAGER)
+  @ApiOperation({ summary: "Create voucher (Manager only)" })
   @ApiBody({ type: CreateVoucherDto })
   @ApiResponse({ status: 201, description: "Create voucher" })
   create(@Body() dto: CreateVoucherDto) {
@@ -64,8 +64,8 @@ export class VouchersController {
 
   @Patch(":id")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: "Update voucher (ADMIN only)" })
+  @Roles(Role.MANAGER)
+  @ApiOperation({ summary: "Update voucher (Manager only)" })
   @ApiParam({ name: "id", type: Number })
   @ApiBody({ type: UpdateVoucherDto })
   update(@Param("id", ParseIntPipe) id: number, @Body() dto: UpdateVoucherDto) {
@@ -74,8 +74,8 @@ export class VouchersController {
 
   @Patch(":id/deactivate")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: "Deactivate voucher (ADMIN only)" })
+  @Roles(Role.MANAGER)
+  @ApiOperation({ summary: "Deactivate voucher (Manager only)" })
   @ApiParam({ name: "id", type: Number })
   @ApiResponse({ status: 200, description: "Voucher deactivated" })
   deactivate(@Param("id", ParseIntPipe) id: number) {

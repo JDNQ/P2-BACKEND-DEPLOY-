@@ -8,6 +8,8 @@ import { SocialLoginDto } from "./dto/social-login.dto";
 import { ForgotPasswordDto, ResetPasswordDto } from "./dto/password-reset.dto";
 import { Role } from "./role.enum";
 import { JwtAuthGuard } from "./jwt-auth.guard";
+import { Roles } from "./roles.decorator";
+import { RolesGuard } from "./roles.guard";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -32,7 +34,10 @@ export class AuthController {
   }
 
   @Post("create-manager")
-  @ApiOperation({ summary: "ADMIN only: create manager" })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MANAGER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Manager only: create admin account" })
   createManager(@Body() dto: RegisterDto & { role: Role }) {
     return this.authService.createManager(dto);
   }

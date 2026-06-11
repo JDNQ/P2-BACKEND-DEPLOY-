@@ -54,6 +54,7 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   wishlistItems Wishlist[]
+  visible     Boolean        @default(true)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 }

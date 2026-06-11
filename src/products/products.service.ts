@@ -109,6 +109,23 @@ export class ProductsService {
     }
   }
 
+  async toggleVisibility(id: number, visible: boolean) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product #${id} not found`);
+    }
+
+    return this.prisma.product.update({
+      where: { id },
+      data: { visible },
+      include: { variants: true, images: true },
+    });
+  }
+
   async remove(id: number) {
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },

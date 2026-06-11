@@ -50,15 +50,15 @@ export class UsersController {
     @Param("id", ParseIntPipe) id: number,
     @Body() dto: UpdateUserDto,
   ) {
-    if (req.user.id !== id && req.user.role !== Role.ADMIN && req.user.role !== Role.MANAGER) {
+    if (req.user.id !== id && req.user.role !== Role.MANAGER && req.user.role !== Role.ADMIN) {
       throw new ForbiddenException("Forbidden");
     }
     return this.usersService.update(id, dto);
   }
 
   @Patch(":id/role")
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: "Update user role (Admin only)" })
+  @Roles(Role.MANAGER)
+  @ApiOperation({ summary: "Update user role (Manager only)" })
   @ApiParam({ name: "id", type: Number })
   @ApiBody({ type: UpdateUserRoleDto })
   updateRole(@Param("id", ParseIntPipe) id: number, @Body() dto: UpdateUserRoleDto) {
@@ -66,8 +66,8 @@ export class UsersController {
   }
 
   @Patch(":id/toggle-status")
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: "Toggle user status (Admin only)" })
+  @Roles(Role.ADMIN, Role.MANAGER)
+  @ApiOperation({ summary: "Toggle user status (Admin/Manager)" })
   @ApiParam({ name: "id", type: Number })
   @ApiBody({ type: ToggleUserStatusDto })
   toggleStatus(@Param("id", ParseIntPipe) id: number, @Body() dto: ToggleUserStatusDto) {
@@ -75,9 +75,9 @@ export class UsersController {
   }
 
   @Delete(":id")
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @Roles(Role.MANAGER)
   @HttpCode(204)
-  @ApiOperation({ summary: "Delete user" })
+  @ApiOperation({ summary: "Delete user (Manager only)" })
   @ApiParam({ name: "id", type: Number })
   async remove(@Param("id", ParseIntPipe) id: number) {
     await this.usersService.remove(id);
