@@ -29,58 +29,61 @@ export class OrdersService {
       throw new BadRequestException("Order items is required");
     }
 
+    // Validate all items first
+    let subtotal = 0;
+    const orderItemsData: any[] = [];
+
+    for (const item of dto.items) {
+      const variant = await this.prisma.variant.findUnique({
+        where: { id: item.variantId },
+        include: { product: true },
+      });
+
+      if (!variant || variant.productId !== item.productId) {
+        throw new BadRequestException("Invalid product/variant");
+      }
+
+      if (variant.stock < item.quantity) {
+        throw new BadRequestException("Variant stock not enough");
+      }
+
+      const priceEach = variant.product.basePrice + variant.extraPrice;
+      subtotal += priceEach * item.quantity;
+
+      orderItemsData.push({
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        price: priceEach,
+        productName: variant.product.productName,
+        variantName: variant.variantName,
+      });
+    }
+
+    // Validate voucher
+    let discountAmount = 0;
+    let voucherId: number | undefined;
+
+    if (dto.voucherCode) {
+      const applied = await this.vouchersService.applyVoucher({
+        code: dto.voucherCode,
+        orderTotal: subtotal,
+      });
+      discountAmount = applied.discount;
+      voucherId = applied.voucher?.id;
+    }
+
+    const totalPrice = subtotal - discountAmount;
+
+    // Execute writes in a short transaction
     try {
       return await this.prisma.$transaction(async (transaction) => {
-        let subtotal = 0;
-        const orderItemsData: any[] = [];
-
-        for (const item of dto.items) {
-          const variant = await transaction.variant.findUnique({
-            where: { id: item.variantId },
-            include: { product: true },
-          });
-
-          if (!variant || variant.productId !== item.productId) {
-            throw new BadRequestException("Invalid product/variant");
-          }
-
-          if (variant.stock < item.quantity) {
-            throw new BadRequestException("Variant stock not enough");
-          }
-
-          const priceEach = variant.product.basePrice + variant.extraPrice;
-          subtotal += priceEach * item.quantity;
-
-          orderItemsData.push({
-            productId: item.productId,
-            variantId: item.variantId,
-            quantity: item.quantity,
-            price: priceEach,
-            productName: variant.product.productName,
-            variantName: variant.variantName,
-          });
-        }
-
-        let discountAmount = 0;
-        let voucherId: number | undefined;
-
-        if (dto.voucherCode) {
-          const applied = await this.vouchersService.applyVoucher({
-            code: dto.voucherCode,
-            orderTotal: subtotal,
-          });
-          discountAmount = applied.discount;
-          voucherId = applied.voucher?.id;
-        }
-
-        if (dto.voucherCode && voucherId) {
+        if (voucherId) {
           await transaction.voucher.update({
             where: { code: dto.voucherCode },
             data: { usageCount: { increment: 1 } },
           });
         }
-
-        const totalPrice = subtotal - discountAmount;
 
         for (const item of dto.items) {
           await transaction.variant.update({
@@ -117,19 +120,12 @@ export class OrdersService {
 
         const variantIds = dto.items.map((i) => i.variantId);
         await transaction.cartItem.deleteMany({
-          where: {
-            userId,
-            variantId: { in: variantIds },
-          },
+          where: { userId, variantId: { in: variantIds } },
         });
 
-        return transaction.order.findUnique({
-          where: { id: order.id },
-          include: orderIncludes,
-        });
+        return order;
       });
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
       throw new BadRequestException(
         `Không thể tạo đơn hàng: ${error instanceof Error ? error.message : "Lỗi không xác định"}`,
       );
