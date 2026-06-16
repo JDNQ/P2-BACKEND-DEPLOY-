@@ -29,109 +29,111 @@ export class OrdersService {
       throw new BadRequestException("Order items is required");
     }
 
-    return this.prisma.$transaction(async (transaction) => {
-      let subtotal = 0;
+    try {
+      return await this.prisma.$transaction(async (transaction) => {
+        let subtotal = 0;
+        const orderItemsData: any[] = [];
 
-      // Validate stock and compute prices
-      const orderItemsData = [] as any[];
+        for (const item of dto.items) {
+          const variant = await transaction.variant.findUnique({
+            where: { id: item.variantId },
+            include: { product: true },
+          });
 
-      for (const item of dto.items) {
-        const variant = await transaction.variant.findUnique({
-          where: { id: item.variantId },
-          include: { product: true },
-        });
+          if (!variant || variant.productId !== item.productId) {
+            throw new BadRequestException("Invalid product/variant");
+          }
 
-        if (!variant || variant.productId !== item.productId) {
-          throw new BadRequestException("Invalid product/variant");
+          if (variant.stock < item.quantity) {
+            throw new BadRequestException("Variant stock not enough");
+          }
+
+          const priceEach = variant.product.basePrice + variant.extraPrice;
+          subtotal += priceEach * item.quantity;
+
+          orderItemsData.push({
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            price: priceEach,
+            productName: variant.product.productName,
+            variantName: variant.variantName,
+          });
         }
 
-        if (variant.stock < item.quantity) {
-          throw new BadRequestException("Variant stock not enough");
+        let discountAmount = 0;
+        let voucherId: number | undefined;
+
+        if (dto.voucherCode) {
+          const applied = await this.vouchersService.applyVoucher({
+            code: dto.voucherCode,
+            orderTotal: subtotal,
+          });
+          discountAmount = applied.discount;
+          voucherId = applied.voucher?.id;
         }
 
-        const priceEach = variant.product.basePrice + variant.extraPrice;
-        subtotal += priceEach * item.quantity;
+        if (dto.voucherCode && voucherId) {
+          await transaction.voucher.update({
+            where: { code: dto.voucherCode },
+            data: { usageCount: { increment: 1 } },
+          });
+        }
 
-        orderItemsData.push({
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-          price: priceEach,
-          productName: variant.product.productName,
-          variantName: variant.variantName,
-        });
-      }
+        const totalPrice = subtotal - discountAmount;
 
-      let discountAmount = 0;
-      let voucherId: number | undefined;
+        for (const item of dto.items) {
+          await transaction.variant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
 
-      if (dto.voucherCode) {
-        const applied = await this.vouchersService.applyVoucher({
-          code: dto.voucherCode,
-          orderTotal: subtotal,
-        });
-        discountAmount = applied.discount;
-        voucherId = applied.voucher?.id;
-      }
-
-      // Increase voucher usageCount if applied
-      if (dto.voucherCode) {
-        await transaction.voucher.update({
-          where: { code: dto.voucherCode },
-          data: { usageCount: { increment: 1 } },
-        });
-      }
-
-      const totalPrice = subtotal - discountAmount;
-
-      // Decrease stock
-      for (const item of dto.items) {
-        await transaction.variant.update({
-          where: { id: item.variantId },
-          data: { stock: { decrement: item.quantity } },
-        });
-      }
-
-      const order = await transaction.order.create({
-        data: {
-          userId,
-          totalPrice,
-          status: "PENDING",
-          note: dto.note,
-          voucherCode: dto.voucherCode ?? null,
-          voucherId: voucherId ?? null,
-          discountAmount,
-          phoneNumber: dto.phoneNumber ?? null,
-          shippingAddress: dto.shippingAddress ?? null,
-          paymentMethod: dto.paymentMethod ?? null,
-          items: {
-            create: orderItemsData.map((it) => ({
-              productId: it.productId,
-              variantId: it.variantId,
-              quantity: it.quantity,
-              price: it.price,
-              productName: it.productName,
-              variantName: it.variantName,
-            })),
+        const order = await transaction.order.create({
+          data: {
+            userId,
+            totalPrice,
+            status: "PENDING",
+            note: dto.note ?? null,
+            voucherCode: dto.voucherCode ?? null,
+            voucherId: voucherId ?? null,
+            discountAmount,
+            phoneNumber: dto.phoneNumber ?? null,
+            shippingAddress: dto.shippingAddress ?? null,
+            paymentMethod: dto.paymentMethod ?? null,
+            items: {
+              create: orderItemsData.map((it) => ({
+                productId: it.productId,
+                variantId: it.variantId,
+                quantity: it.quantity,
+                price: it.price,
+                productName: it.productName,
+                variantName: it.variantName,
+              })),
+            },
           },
-        },
-        include: orderIncludes,
-      });
+          include: orderIncludes,
+        });
 
-      // Clear cart items corresponding
-      const variantIds = dto.items.map((i) => i.variantId);
-      await transaction.cartItem.deleteMany({
-        where: {
-          userId,
-          variantId: { in: variantIds },
-        },
-      });
+        const variantIds = dto.items.map((i) => i.variantId);
+        await transaction.cartItem.deleteMany({
+          where: {
+            userId,
+            variantId: { in: variantIds },
+          },
+        });
 
-      return transaction.order.findUnique({
-        where: { id: order.id },
-        include: orderIncludes,
+        return transaction.order.findUnique({
+          where: { id: order.id },
+          include: orderIncludes,
+        });
       });
-    });
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new BadRequestException(
+        `Không thể tạo đơn hàng: ${error instanceof Error ? error.message : "Lỗi không xác định"}`,
+      );
+    }
   }
 
   findMyOrders(userId: number) {
